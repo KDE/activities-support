@@ -13,9 +13,11 @@ class Event:
 
 ActivityManager = dbus.SessionBus().get_object('org.kde.ActivityManager', '/ActivityManager')
 
-RegisterResourceEvent    = ActivityManager.get_dbus_method('RegisterResourceEvent',    'org.kde.ActivityManager')
-RegisterResourceMimeType = ActivityManager.get_dbus_method('RegisterResourceMimeType', 'org.kde.ActivityManager')
-RegisterResourceTitle    = ActivityManager.get_dbus_method('RegisterResourceTitle',    'org.kde.ActivityManager')
+RegisterResourceEvent      = ActivityManager.get_dbus_method('RegisterResourceEvent',      'org.kde.ActivityManager')
+RegisterResourceMimeType   = ActivityManager.get_dbus_method('RegisterResourceMimeType',   'org.kde.ActivityManager')
+RegisterResourceTitle      = ActivityManager.get_dbus_method('RegisterResourceTitle',      'org.kde.ActivityManager')
+LinkResourceToActivity     = ActivityManager.get_dbus_method('LinkResourceToActivity',     'org.kde.ActivityManager')
+UnlinkResourceFromActivity = ActivityManager.get_dbus_method('UnlinkResourceFromActivity', 'org.kde.ActivityManager')
 
 
 class ResourceInstance:
