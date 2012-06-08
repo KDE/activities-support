@@ -24,5 +24,12 @@ pyfile <sfile>:h/main.py
 autocmd BufLeave    * :python kde_activities_FocussedOut()
 autocmd BufEnter    * :python kde_activities_FocussedIn()
 
-command KLink         :python kde_activities_Link()<CR>
-command KUnlink       :python kde_activities_Unlink()<CR>
+command LinkToActivity              :python kde_activities_Link()<CR>
+command UnlinkFromActivity          :python kde_activities_Unlink()<CR>
+command LinkDirectoryToActivity     :python kde_activities_LinkDirectory()<CR>
+command UnlinkDirectoryFromActivity :python kde_activities_UnlinkDirectory()<CR>
+
+menu File.Activities.Link\ current\ file :LinkToActivity<CR>
+menu File.Activities.Link\ containing\ directory     :LinkDirectoryToActivity<CR>
+menu File.Activities.Unlink\ current\ file :UnlinkFromActivity<CR>
+menu File.Activities.Unlink\ containing\ directory     :UnlinkDirectoryFromActivity<CR>

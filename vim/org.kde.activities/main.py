@@ -27,14 +27,12 @@ def _getWindowId():
 # Returns the url for the current file                                #
 #######################################################################
 
-def _urlForCurrentDocument():
+def _urlForCurrentDocument(suf = ":p"):
     try:
-        document = vim.eval('expand("<afile>:p")')
+        document = vim.eval('expand("<afile>' + suf + '")')
 
         if document is None:
-            document = vim.eval('expand("%:p")')
-
-        # print("file: ", document)
+            document = vim.eval('expand("%' + suf + '")')
 
         if os.path.exists("/" + document):
             return "file://" + document
@@ -76,6 +74,18 @@ def kde_activities_Link():
 
 def kde_activities_Unlink():
     document = _urlForCurrentDocument()
+
+    if document is not None:
+        KActivities.UnlinkResourceFromActivity(document)
+
+def kde_activities_LinkDirectory():
+    document = _urlForCurrentDocument(":p:h")
+
+    if document is not None:
+        KActivities.LinkResourceToActivity(document)
+
+def kde_activities_UnlinkDirectory():
+    document = _urlForCurrentDocument(":p:h")
 
     if document is not None:
         KActivities.UnlinkResourceFromActivity(document)

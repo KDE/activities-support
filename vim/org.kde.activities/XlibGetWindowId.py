@@ -1,14 +1,20 @@
-import os
-import Xlib
-from Xlib import X,display,Xatom
+import os, sys, Xlib
+from Xlib import X, display, Xatom
 
-display = Xlib.display.Display()
-screen = display.screen()
+# Doing dirty things to stop Xlib from
+# writing to stdout
+# Xlib.display.Display()
+#     Xlib.protocol.request.QueryExtension
+old_stdout = sys.stdout
+sys.stdout = open("/dev/null", "w")
+display    = Xlib.display.Display()
+screen     = display.screen()
+sys.stdout.close()
+sys.stdout = old_stdout
 
 def _processWindow(win, atom, processId, level = 0):
     result = set()
 
-    # print win.get_wm_name(),
     response = win.get_full_property(atom, Xatom.CARDINAL);
 
     found = False
