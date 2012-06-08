@@ -57,9 +57,13 @@ class ResourceInstance:
         RegisterResourceEvent(self._application, self._wid, self._resourceUri, Event.FocussedOut, 0)
 
     def setUri(self, newUri):
-        RegisterResourceEvent(self._application, self._wid, self._resourceUri, self._Event.Closed, 0)
+        if self._resourceUri is not None:
+            RegisterResourceEvent(self._application, self._wid, self._resourceUri, Event.Closed, 0)
+
         self._resourceUri = newUri
-        RegisterResourceEvent(self._application, self._wid, self._resourceUri, self._Event.Opened, 0)
+
+        if self._resourceUri is not None:
+            RegisterResourceEvent(self._application, self._wid, self._resourceUri, Event.Opened, 0)
 
     def setMimetype(self, mimeType):
         RegisterResourceMimeType(self._resourceUri, self._mimetype)

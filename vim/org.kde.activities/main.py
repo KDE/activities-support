@@ -12,8 +12,6 @@ def _getWindowId():
     for wid in XlibGetWindowId.getWindowIdsForCurrentProcess():
         return wid
 
-    return 0
-
     # Falling back to testing the environment vatiable
     # if we are in a terminal - normal VIM
     try:
@@ -42,6 +40,7 @@ def _urlForCurrentDocument():
             return "file://" + document
 
         return None
+
     except:
         return None
 
@@ -51,41 +50,26 @@ def _urlForCurrentDocument():
 # Activities related methods                                          #
 #######################################################################
 
-def kde_activities_Opened():
-    pass
-    wid = _getWindowId()
-    document = _urlForCurrentDocument()
+kde_activities_resourceinstance = None
 
-    if document is not None:
-        KActivities.RegisterResourceEvent("vim", wid, document, KActivities.Event.Opened, 0)
+def kde_activities_ResourceInstance():
+    global kde_activities_resourceinstance
 
+    if kde_activities_resourceinstance is None:
+        kde_activities_resourceinstance = KActivities.ResourceInstance(_getWindowId(), "gvim")
 
-def kde_activities_Closed():
-    pass
-    wid = _getWindowId()
-    document = _urlForCurrentDocument()
-
-    if document is not None:
-        KActivities.RegisterResourceEvent("vim", wid, document, KActivities.Event.Closed, 0)
-
+    return kde_activities_resourceinstance
 
 def kde_activities_FocussedIn():
-    wid = _getWindowId()
     document = _urlForCurrentDocument()
 
-    if document is not None:
-        KActivities.RegisterResourceEvent("vim", wid, document, KActivities.Event.Opened, 0)
+    if document is None:
+        return;
 
-def kde_activities_FocussedOut():
-    wid = _getWindowId()
-    document = _urlForCurrentDocument()
-
-    if document is not None:
-        KActivities.RegisterResourceEvent("vim", wid, document, KActivities.Event.Closed, 0)
+    kde_activities_ResourceInstance().setUri(document)
 
 def kde_activities_Link():
     document = _urlForCurrentDocument()
-    # print("linking...", document)
 
     if document is not None:
         KActivities.LinkResourceToActivity(document)
