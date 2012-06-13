@@ -8,6 +8,19 @@ import KActivities
 #######################################################################
 
 def _getWindowId():
+    try:
+        wid = 0
+        var = "v:windowid"
+        varExists = vim.eval('exists("' + var + '")')
+
+        if not varExists == "0":
+            wid = vim.eval(var)
+            if not wid == "0":
+                return wid
+
+    except:
+        pass
+
     # Getting the window id for the current process - GVIM
     for wid in XlibGetWindowId.getWindowIdsForCurrentProcess():
         return wid
@@ -65,6 +78,9 @@ def kde_activities_FocussedIn():
         return;
 
     kde_activities_ResourceInstance().setUri(document)
+
+def kde_activities_FocussedOut():
+    pass
 
 def kde_activities_Link():
     document = _urlForCurrentDocument()
