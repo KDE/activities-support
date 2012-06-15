@@ -1,18 +1,22 @@
 
-Components.utils.import("resource://gre/modules/ctypes.jsm");
-let library = ctypes.open("libkactivities-c.so");
 
-let version = library.declare("kactivitiesVersion", ctypes.default_abi, ctypes.int32_t);
+Components.utils.import("resource://gre/modules/ctypes.jsm");
+let kactivities_Library = ctypes.open("libkactivities-c.so");
+
+let kactivities_Version = kactivities_Library.declare("kactivities_Version", ctypes.default_abi, ctypes.int32_t);
 
 // actDes().readString()
 
-let activityName    = library.declare("kactivitiesActivityName", ctypes.default_abi, ctypes.char.ptr, ctypes.char.ptr);
-let currentActivity = library.declare("kactivitiesCurrentActivity", ctypes.default_abi, ctypes.char.ptr);
-let listActivities  = library.declare("kactivitiesListActivities",  ctypes.default_abi, ctypes.char.ptr);
+let kactivities_ActivityName    = kactivities_Library.declare("kactivities_ActivityName",
+        ctypes.default_abi, ctypes.char.ptr, ctypes.char.ptr);
+let kactivities_CurrentActivity = kactivities_Library.declare("kactivities_CurrentActivity",
+        ctypes.default_abi, ctypes.char.ptr);
+let kactivities_ListActivities  = kactivities_Library.declare("kactivities_ListActivities",
+        ctypes.default_abi, ctypes.char.ptr);
 
-let linkResourceToActivity = library.declare("kactivitiesLinkResourceToActivity",
+let kactivities_LinkResourceToActivity = kactivities_Library.declare("kactivities_LinkResourceToActivity",
         ctypes.default_abi, ctypes.void_t, ctypes.char.ptr, ctypes.char.ptr);
-let unlinkResourceFromActivity = library.declare("kactivitiesUnlinkResourceFromActivity",
+let kactivities_UnlinkResourceFromActivity = kactivities_Library.declare("kactivities_UnlinkResourceFromActivity",
         ctypes.default_abi, ctypes.void_t, ctypes.char.ptr, ctypes.char.ptr);
-let isResourceLinkedToActivity = library.declare("kactivitiesIsResourceLinkedToActivity",
+let kactivities_IsResourceLinkedToActivity = kactivities_Library.declare("kactivities_IsResourceLinkedToActivity",
         ctypes.default_abi, ctypes.bool, ctypes.char.ptr, ctypes.char.ptr);

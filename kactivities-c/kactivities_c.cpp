@@ -17,7 +17,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#define ka(Method) kactivities##Method
+#define ka(Method) kactivities_##Method
 #define KACTIVITIES_C_EXPORT    __attribute__ ((visibility("default")))
 #define KACTIVITIES_C_NO_EXPORT __attribute__ ((visibility("hidden")))
 
@@ -25,8 +25,13 @@
 #include <KActivities/Info>
 #include <KActivities/ResourceInstance>
 
+#include <map>
 #include <memory>
 #include <mutex>
+
+#include "utils.h"
+
+typedef std::unique_ptr<KActivities::ResourceInstance> ResourceInstancePtr;
 
 class KACTIVITIES_C_NO_EXPORT KActivityC {
 public:
@@ -48,9 +53,43 @@ public:
 
     KActivities::Consumer activities;
 
-    std::mutex resourceInstanceMutex;
+    mutable std::mutex resourceInstanceMutex;
     unsigned int resourceInstanceLastIndex;
-    std::map < unsigned long, std::unique_ptr<ResourceInstance> > resourceInstances;
+    std::map<uint32_t, ResourceInstancePtr> resourceInstances;
+
+    uint32_t createResourceInstance(
+            WId wid,
+            const QString & application,
+            const QString & resource = QString(),
+            const QString & mimetype = QString(),
+            const QString & title = QString()
+        )
+    {
+        std::lock_guard<std::mutex> lock { resourceInstanceMutex };
+
+        resourceInstanceLastIndex++;
+        resourceInstances[resourceInstanceLastIndex] = make_unique<KActivities::ResourceInstance> (
+                wid, resource, mimetype, title, KActivities::ResourceInstance::User, application
+            );
+
+        return resourceInstanceLastIndex;
+    }
+
+    void freeResourceInstance(uint32_t id)
+    {
+        std::lock_guard<std::mutex> lock { resourceInstanceMutex };
+        resourceInstances.erase(id);
+    }
+
+    template <typename T>
+    void callOnResourceInstance(uint32_t id, T function)
+    {
+        std::lock_guard<std::mutex> lock { resourceInstanceMutex };
+
+        if (resourceInstances.count(id) > 0) {
+            function(resourceInstances.at(id));
+        }
+    }
 
 private:
     static
@@ -65,7 +104,6 @@ KActivityC * KActivityC::s_instance = 0;
 
 
 extern "C" {
-    auto ka(name) = "KActivity C\0";
 
     KACTIVITIES_C_EXPORT
     int ka(Version)(void)
@@ -129,59 +167,95 @@ extern "C" {
     }
 
     KACTIVITIES_C_EXPORT
-    unsigned long ka(ResourceInstance_Create2)(WId wid, char * application)
+    uint32_t ka(ResourceInstance_Create2)(WId wid, char * application)
     {
-        return 0;
+        return KActivityC::self()->createResourceInstance(
+                wid,
+                QString::fromUtf8(application)
+            );
     }
 
     KACTIVITIES_C_EXPORT
-    unsigned long ka(ResourceInstance_Create3)(WId wid, char * application, char * resource)
+    uint32_t ka(ResourceInstance_Create3)(WId wid, char * application, char * resource)
     {
-        return 0;
+        return KActivityC::self()->createResourceInstance(
+                wid,
+                QString::fromUtf8(application),
+                QString::fromUtf8(resource)
+            );
     }
 
     KACTIVITIES_C_EXPORT
-    unsigned long ka(ResourceInstance_Create4)(WId wid, char * application, char * resource, char * mimetype)
+    uint32_t ka(ResourceInstance_Create4)(WId wid, char * application, char * resource, char * mimetype)
     {
-        return 0;
+        return KActivityC::self()->createResourceInstance(
+                wid,
+                QString::fromUtf8(application),
+                QString::fromUtf8(resource),
+                QString::fromUtf8(mimetype)
+            );
     }
 
     KACTIVITIES_C_EXPORT
-    unsigned long ka(ResourceInstance_Create5)(WId wid, char * application, char * resource, char * mimetype, char * title)
+    uint32_t ka(ResourceInstance_Create5)(WId wid, char * application, char * resource, char * mimetype, char * title)
     {
-        return 0;
+        return KActivityC::self()->createResourceInstance(
+                wid,
+                QString::fromUtf8(application),
+                QString::fromUtf8(resource),
+                QString::fromUtf8(mimetype),
+                QString::fromUtf8(title)
+            );
     }
 
     KACTIVITIES_C_EXPORT
-    void ka(ResourceInstance_NotifyModified)(unsigned long resoource)
+    void ka(ResourceInstance_Free)(uint32_t id)
     {
+        KActivityC::self()->freeResourceInstance(id);
+    }
+
+    #define CallOnResourceInstance(Method)                     \
+        KActivityC::self()->callOnResourceInstance(resource,   \
+            [=] (ResourceInstancePtr & _) { Method ;}          \
+        )
+
+    KACTIVITIES_C_EXPORT
+    void ka(ResourceInstance_NotifyModified)(uint32_t resource)
+    {
+        CallOnResourceInstance( _->notifyModified() );
     }
 
     KACTIVITIES_C_EXPORT
-    void ka(ResourceInstance_NotifyFocussedIn)(unsigned long resoource)
+    void ka(ResourceInstance_NotifyFocusedIn)(uint32_t resource)
     {
+        CallOnResourceInstance( _->notifyFocusedIn() );
     }
 
     KACTIVITIES_C_EXPORT
-    void ka(ResourceInstance_NotifyFocussedOut)(unsigned long resoource)
+    void ka(ResourceInstance_NotifyFocusedOut)(uint32_t resource)
     {
+        CallOnResourceInstance( _->notifyFocusedOut() );
     }
 
     KACTIVITIES_C_EXPORT
-    void ka(ResourceInstance_SetUri)(unsigned long resoource, char * uri)
+    void ka(ResourceInstance_SetUri)(uint32_t resource, char * uri)
     {
+        CallOnResourceInstance( _->setUri(QString::fromUtf8(uri)) );
     }
 
     KACTIVITIES_C_EXPORT
-    void ka(ResourceInstance_SetMimeType)(unsigned long resoource, char * mimetype)
+    void ka(ResourceInstance_SetMimeType)(uint32_t resource, char * mimetype)
     {
+        CallOnResourceInstance( _->setMimetype(QString::fromUtf8(mimetype)) );
     }
 
     KACTIVITIES_C_EXPORT
-    void ka(ResourceInstance_SetTitle)(unsigned long resoource, char * title)
+    void ka(ResourceInstance_SetTitle)(uint32_t resource, char * title)
     {
+        CallOnResourceInstance( _->setTitle(QString::fromUtf8(title)) );
     }
 
+    #undef CallOnResourceInstance
 
     // Q_SIGNALS:
     // void currentActivityChanged(const QString & id);
